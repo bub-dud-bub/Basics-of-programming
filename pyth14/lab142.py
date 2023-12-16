@@ -62,29 +62,28 @@ class Super():
         assert colors.count(), f"Цвет с ID:<{color_id}> не найден"
         color = colors.first()
 
+        new_product = lab14.Product(
+            name=name,
+            price=price,
+            have=have,
+            color_id=color,
+        )
 
+        color.products.append(new_product)
 
         id = session.query(lab14.Product).filter(lab14.Product.name == name).first()
         if id == None:
             id = 1
         else:
-            id += id.id + 1
-        new_product = lab14.Product(
-            name=name,
-            price=price,
-            have=have,
-            color_id=color
-        )
+            id = id.id
 
-        color.products.append(new_product)
-
-        for type_id in all_types:
-            types = session.query(lab14.Type).filter(lab14.Type.id == type_id)
-            assert types.count(), f"Тип с ID:<{type_id}> не найден"
-            type = types.first()
-            new_type = lab14.Association_table(products_id=id, types_id=type_id)
-            type.products.append(new_type)
-
+        #for type_id in all_types:
+        types = session.query(lab14.Type).filter(lab14.Type.id == type_id)
+        assert types.count(), f"Тип с ID:<{type_id}> не найден"
+        type = types.first()
+        new_type = lab14.Product()
+        type.products.append(new_product)
+        type.products.append(new_product)
         session.add(new_product)
         session.commit()
 
