@@ -8,18 +8,17 @@ Base = declarative_base()
 engine = create_engine("sqlite:///sqlite3.db")
 session = Session(bind=engine)
 
-# association_table = Table(
-#     "association_table", Base.metadata,
-#     Column("products_id", Integer(), ForeignKey("products.id")),
-#     Column("types_id", Integer(), ForeignKey("types.id")),
-# )
-class Association_table(Base):
-    __tablename__ = "association_table"
 
-    id = Column(Integer(), primary_key=True, autoincrement=True)
-    products_id = Column(Integer(), ForeignKey("products.id"))
-    types_id = Column(Integer(), ForeignKey("types.id"))
+#class Association_table(Base):
+ #   __tablename__ = "association_table"
 
+ #   products_id = Column(Integer(), primary_key=True, autoincrement=True, ForeignKey("products.id"))
+#    types_id = Column(Integer(), primary_key=True, autoincrement=True, ForeignKey("types.id"))
+association_table = Table(
+    "association_table", Base.metadata,
+    Column("products_id", Integer(), ForeignKey("products.id")),
+    Column("types_id", Integer(), ForeignKey("types.id"))
+ )
 class Color(Base):
     __tablename__ = "colors"
 
@@ -38,8 +37,7 @@ class Product(Base):
     have = Column(Integer())
 
     color_id = Column(Integer(), ForeignKey('colors.id'))
-
-    types = relationship("Association_table", backref="products")
+    types = relationship("Type", secondary=association_table, backref='products')
 
 
 class Type(Base):
@@ -48,7 +46,8 @@ class Type(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     type = Column(String())
 
-    products = relationship("Association_table", backref="types")
+    #products = relationship("Product", secondary=association_table, back_populates='type')
+
 
 
 
