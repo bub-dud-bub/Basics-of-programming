@@ -7,11 +7,18 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 Base = declarative_base()
 engine = create_engine("sqlite:///sqlite3.db")
 session = Session(bind=engine)
-association_table = Table(
-    "association_table", Base.metadata,
-    Column("products_id", Integer(), ForeignKey("products.id")),
-    Column("types_id", Integer(), ForeignKey("types.id")),
-)
+
+# association_table = Table(
+#     "association_table", Base.metadata,
+#     Column("products_id", Integer(), ForeignKey("products.id")),
+#     Column("types_id", Integer(), ForeignKey("types.id")),
+# )
+class Association_table(Base):
+    __tablename__ = "association_table"
+
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    products_id = Column(Integer(), ForeignKey("products.id"))
+    types_id = Column(Integer(), ForeignKey("types.id"))
 
 class Color(Base):
     __tablename__ = "colors"
@@ -31,7 +38,8 @@ class Product(Base):
     have = Column(Integer())
 
     color_id = Column(Integer(), ForeignKey('colors.id'))
-    types = relationship("Type", secondary=association_table, backref=backref("products"))
+
+    types = relationship("Association_table", backref="products")
 
 
 class Type(Base):
@@ -40,91 +48,107 @@ class Type(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     type = Column(String())
 
+    products = relationship("Association_table", backref="types")
+
+
+
 
 
 Base.metadata.create_all(bind=engine)
 
-print(
-    """
-Выберите действие:
-    1. Добавить товар в БД
-    2. Добавить цвет
-    3. Добавить вид товара
-    4. Вывести список всех товаров
-    5. Вывести список всех цветов
-"""
-)
-id = 0
-while True:
-    inp = input("Выбор действия:")
-    if inp == "1":
-        name = input("Название товара: ")
-        price = input("Стоимость товара: ")
 
-        types = session.query(Type).all()
-        print("Выберите тип товара:")
-        for type in types:
-            print(f"\t{type.id}){type.type}")
-        types_id = input("")
+# id = 0
 
-        colors = session.query(Color).all()
-        print("Выберите цвет товара:")
-        for color in colors:
-            print(f"\t{color.id}){color.color}")
-        color_id = input("")
-        while True:
-            have = int(input("\nНаличие товара(1 - Присутствует, 0 - Отсутствует):"))
-            if have == 1 or have == 0: break
-        if have == 1:
-            have = 'Присутствует'
-        else:
-            have = 'Отсутствует'
+#
+# if session.query(Color).count() == 0:
+#     colors = ['красный', 'синий', 'зелёный', 'жёлтый', 'белый', 'чёрный', 'серый', 'розовый']
+#     id = 1
+#     while id<=8:
+#         new_color = Color(id=id, color=colors[id-1])
+#         session.add(new_color)
+#         id+=1
+#     session.commit()
+#
+# if session.query(Type).count() == 0:
+#     types = ['техника', 'бытовая техника', 'посуда', 'провизия', 'оружие', 'люди', 'мебель', 'инструменты']
+#     id = 1
+#     while id<=8:
+#         new_type = Type(id=id, type=types[id-1])
+#         session.add(new_type)
+#         id+=1
+#     session.commit()
 
-        colors = session.query(Color).filter(Color.id == color_id)
-        assert colors.count(), f"Цвет с ID:<{color_id}> не найден"
-        color = colors.first()
-
-        new_product = Product(
-            name=name,
-            price=price,
-            have=have,
-            color_id=color
-        )
-
-        color.products.append(new_product)
-
-
-        session.add(new_product)
-        session.commit()
-    elif inp == "2":
-        colors = ['красный', 'синий', 'зелёный', 'жёлтый', 'белый', 'чёрный', 'серый', 'розовый']
-        while True:
-            print("Выберите цвет:")
-            for i in range(0, len(colors)):
-                print((i+1),colors[i])
-            color_id = int(input(""))
-            if color_id > 0 and color_id < 9:
-                color = colors[color_id-1]
-                break
-        new_color = Color(color=color)
-        session.add(new_color)
-        session.commit()
-
-    elif inp == "3":
-        type = input("Вид товара: ")
-        new_type = Type(type=type)
-        session.add(new_type)
-        session.commit()
-
-    elif inp == "4":
-        products = session.query(Product).all()
-        print("Все дисциплины:")
-        for product in products:
-            color = session.query(Color).filter(Color.id == product.color_id).first()
-            print(f"\t{product.id}) {product.name.title()} ({color.color}): цена - {product.price}, в наличии - {product.have}")
-
-    elif inp == "5":
-        colors = session.query(Color).all()
-        print("Все цвета (цвет -> кол-во товаров):")
-        for color in colors:
-            print(f"\t{color.color} -> {len(color.products)}")
+#Это через str и repr:
+# while True:
+#     inp = input("Выбор действия:")
+#     if inp == "1":
+#         name = input("Название товара: ")
+#         price = input("Стоимость товара: ")
+#
+#         types = session.query(Type).all()
+#         print("Выберите тип товара:")
+#         for type in types:
+#             print(f"\t{type.id}){type.type}")
+#         type_id = input("")
+#
+#         colors = session.query(Color).all()
+#         print("Выберите цвет товара:")
+#         for color in colors:
+#             print(f"\t{color.id}){color.color}")
+#         color_id = input("")
+#         while True:
+#             have = int(input("\nНаличие товара(1 - Присутствует, 0 - Отсутствует):"))
+#             if have == 1 or have == 0: break
+#         if have == 1:
+#             have = 'Присутствует'
+#         else:
+#             have = 'Отсутствует'
+#
+#         colors = session.query(Color).filter(Color.id == color_id)
+#         assert colors.count(), f"Цвет с ID:<{color_id}> не найден"
+#         color = colors.first()
+#
+#         types = session.query(Type).filter(Type.id == type_id)
+#         assert types.count(), f"Тип с ID:<{type_id}> не найден"
+#         type = types.first()
+#
+#         new_product = Product(
+#             name=name,
+#             price=price,
+#             type_id=type.id,
+#             have=have,
+#             color_id=color,
+#         )
+#
+#         color.products.append(new_product)
+#
+#
+#         session.add(new_product)
+#         session.commit()
+#     elif inp == "2":
+#         color = input("Название цвета: ")
+#         id = session.query(Color).count()
+#         new_color = Color(id=id+1, color=color)
+#         session.add(new_color)
+#         session.commit()
+#
+#     elif inp == "3":
+#         type = input("Вид товара: ")
+#         id = session.query(Type).count()
+#         new_type = Type(id=id+1, type=type)
+#         session.add(new_type)
+#         session.commit()
+#
+#     elif inp == "4":
+#         products = session.query(Product).all()
+#         print("Все товары:")
+#         for product in products:
+#             type = session.query(Type).filter(Type.id == product.type_id).first()
+#             color = session.query(Color).filter(Color.id == product.color_id).first()
+#             print(f"\t{product.id}) {product.name.title()}, тип - {type.type}, цвет - {color.color}, цена - {product.price}, в наличии - {product.have}")
+#
+#     elif inp == "5":
+#         colors = session.query(Color).all()
+#         print("Все цвета (цвет -> кол-во товаров):")
+#         for color in colors:
+#             print(f"\t{color.color} -> {len(color.products)}")
